@@ -1,0 +1,15 @@
+# Resend API Key
+RESEND_API_KEY=re_xxxxxxxxxxxxx
+
+# App URL
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Supabase (you already have these)
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# Optional: Holiday campaign
+ENABLE_HOLIDAY_GIFT_EMAILS=false
+HOLIDAY_GIFT_CAMPAIGN_START=2024-11-15
+HOLIDAY_GIFT_CAMPAIGN_END=2024-12-31
