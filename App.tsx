@@ -10,7 +10,7 @@ import SuccessPage from './components/SuccessPage';
 // Import components
 import { EnhancedImageCarousel } from './components/EnhancedImageCarousel';
 import { SimpleSignupForm } from './components/SimpleSignupForm';
-const SignupFormOriginal = React.lazy(() => import('./components/SignupFormOriginal'));
+import MultiStepSignupForm from './components/signup/MultiStepSignupForm'
 const AdminDashboard = React.lazy(() => import('./components/AdminDashboard').then((module) => ({ default: module.AdminDashboard })));
 
 export default function App() {
@@ -73,7 +73,7 @@ export default function App() {
     );
   }
 
-  // Original Form rendering (if not logged in)
+  // MultiStepSignupForm Form rendering (if not logged in)
   return (
     <>
       {useSimpleForm ? (
@@ -89,7 +89,7 @@ export default function App() {
             {/* Right side - Signup Form */}
             <div className={`${isMobile ? 'w-full' : 'w-1/2'} flex items-center justify-center p-4 bg-white`}>
               <div className="w-full max-w-md">
-                <SignupFormOriginal />
+                <MultiStepSignupForm/>
               </div>
             </div>
           </div>
