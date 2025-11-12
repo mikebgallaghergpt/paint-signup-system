@@ -6,12 +6,10 @@ import { Settings, ArrowLeft, LogOut } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import type { Session } from '@supabase/supabase-js';
 import SuccessPage from './components/SuccessPage';
-
 // Import components
 import { EnhancedImageCarousel } from './components/EnhancedImageCarousel';
 import { SimpleSignupForm } from './components/SimpleSignupForm';
-import MultiStepSignupForm from './components/signup/MultiStepSignupForm'
-const AdminDashboard = React.lazy(() => import('./components/AdminDashboard').then((module) => ({ default: module.AdminDashboard })));
+import MultiStepSignupForm from './components/signup/MultiStepSignupForm';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'signup' | 'admin'>('signup');
@@ -37,7 +35,6 @@ export default function App() {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -48,12 +45,12 @@ export default function App() {
     setCurrentView('signup');
   };
 
-  // If logged in, show admin dashboard
+  // If logged in, show admin dashboard (DISABLED FOR NOW)
   if (session) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="flex items-center justify-between p-4 bg-white border-b">
-          <h1 className="text-xl font-bold">Admin Dashboard</h1>
+          <h1 className="text-xl font-bold">Welcome!</h1>
           <Button
             variant="outline"
             onClick={handleLogout}
@@ -64,10 +61,10 @@ export default function App() {
           </Button>
         </div>
         
-        <Suspense fallback={<div className="text-center py-8">Loading...</div>}>
-          <AdminDashboard />
-        </Suspense>
-
+        <div className="p-8 text-center">
+          <p className="text-gray-600">Admin dashboard coming soon...</p>
+        </div>
+        
         <Toaster />
       </div>
     );
@@ -89,13 +86,12 @@ export default function App() {
             {/* Right side - Signup Form */}
             <div className={`${isMobile ? 'w-full' : 'w-1/2'} flex items-center justify-center p-4 bg-white`}>
               <div className="w-full max-w-md">
-                <MultiStepSignupForm/>
+                <MultiStepSignupForm />
               </div>
             </div>
           </div>
         </Suspense>
       )}
-
       <Toaster />
     </>
   );
