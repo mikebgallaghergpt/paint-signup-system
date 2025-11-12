@@ -10,6 +10,7 @@ import SuccessPage from './components/SuccessPage';
 import { EnhancedImageCarousel } from './components/EnhancedImageCarousel';
 import { SimpleSignupForm } from './components/SimpleSignupForm';
 import MultiStepSignupForm from './components/signup/MultiStepSignupForm';
+import { ExitIntentPopup } from './components/ExitIntentPopup';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'signup' | 'admin'>('signup');
@@ -93,6 +94,7 @@ export default function App() {
         </Suspense>
       )}
       <Toaster />
+      <ExitIntentPopup />  {/* ADD THIS LINE */}
     </>
   );
 }
