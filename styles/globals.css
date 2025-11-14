@@ -2,7 +2,45 @@
 /* Based on official design specification */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+/* === RESPONSIVE CONTAINER FIXES === */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+#root {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Constrain main container to reasonable max-width */
+.min-h-screen {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+/* Make carousel images scale properly */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Ensure form doesn't get too wide */
+form {
+  max-width: 100%;
+}
+/* === END RESPONSIVE FIXES === */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

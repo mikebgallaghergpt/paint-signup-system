@@ -1,80 +1,71 @@
-const STORAGE_KEY = 'signup_progress';
+const STORAGE_KEY = 'gallagher_signup_progress';
 const EXPIRY_DAYS = 7;
 
-export interface SignupProgress {
-  goals: string[];
-  experienceLevel: string;
-  artForms: string[];
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  newsletter: boolean;
-  currentStep: number;
-  savedAt: string;
-}
-
 export const autoSave = {
-  save: (progress: Partial<SignupProgress>) => {
+  save: (data: any) => {
+    console.log('🔵 AUTO-SAVE: Saving data', data);
+    const item = {
+      data,
+      timestamp: Date.now(),
+    };
     try {
-      const existing = autoSave.load();
-      const updated = {
-        ...existing,
-        ...progress,
-        savedAt: new Date().toISOString(),
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      return true;
-    } catch (err) {
-      console.error('Failed to save progress:', err);
-      return false;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(item));
+      console.log('✅ AUTO-SAVE: Successfully saved');
+    } catch (error) {
+      console.error('❌ AUTO-SAVE: Failed', error);
     }
   },
 
-  load: (): Partial<SignupProgress> | null => {
+  load: () => {
+    console.log('🔍 AUTO-SAVE: Loading...');
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (!saved) return null;
-
-      const progress = JSON.parse(saved);
-      
-      const savedDate = new Date(progress.savedAt);
-      const daysSince = (Date.now() - savedDate.getTime()) / (1000 * 60 * 60 * 24);
-      
-      if (daysSince > EXPIRY_DAYS) {
-        autoSave.clear();
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (!stored) {
+        console.log('⚠️ AUTO-SAVE: No data found');
         return null;
       }
 
-      return progress;
-    } catch (err) {
-      console.error('Failed to load progress:', err);
+      const item = JSON.parse(stored);
+      const now = Date.now();
+      const daysSince = (now - item.timestamp) / (1000 * 60 * 60 * 24);
+
+      if (daysSince > EXPIRY_DAYS) {
+        console.log('⏰ AUTO-SAVE: Expired, clearing');
+        localStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+
+      console.log('✅ AUTO-SAVE: Loaded', item.data);
+      return item.data;
+    } catch (error) {
+      console.error('❌ AUTO-SAVE: Load failed', error);
       return null;
     }
   },
 
   clear: () => {
+    console.log('🗑️ AUTO-SAVE: Clearing');
     localStorage.removeItem(STORAGE_KEY);
   },
 
-  hasSaved: (): boolean => {
-    return !!autoSave.load();
-  },
+  getTimeSince: () => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return '';
 
-  getTimeSince: (): string => {
-    const progress = autoSave.load();
-    if (!progress?.savedAt) return '';
-
-    const savedDate = new Date(progress.savedAt);
-    const minutesSince = Math.floor((Date.now() - savedDate.getTime()) / 60000);
+    const item = JSON.parse(stored);
+    const now = Date.now();
+    const minutesSince = Math.floor((now - item.timestamp) / (1000 * 60));
 
     if (minutesSince < 1) return 'just now';
-    if (minutesSince < 60) return `${minutesSince} minute${minutesSince > 1 ? 's' : ''} ago`;
-    
+    if (minutesSince === 1) return '1 minute ago';
+    if (minutesSince < 60) return `${minutesSince} minutes ago`;
+
     const hoursSince = Math.floor(minutesSince / 60);
-    if (hoursSince < 24) return `${hoursSince} hour${hoursSince > 1 ? 's' : ''} ago`;
-    
+    if (hoursSince === 1) return '1 hour ago';
+    if (hoursSince < 24) return `${hoursSince} hours ago`;
+
     const daysSince = Math.floor(hoursSince / 24);
-    return `${daysSince} day${daysSince > 1 ? 's' : ''} ago`;
+    if (daysSince === 1) return '1 day ago';
+    return `${daysSince} days ago`;
   },
 };
