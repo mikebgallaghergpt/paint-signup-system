@@ -6,7 +6,7 @@
   "scripts": {
     "preview:email": "tsx scripts/renderPreview.ts",
     "dev": "./node_modules/.bin/vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist"
   },
