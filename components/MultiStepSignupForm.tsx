@@ -38,32 +38,32 @@ export default function MultiStepSignupForm() {
     }
   }, []);
 
- // Auto-save whenever form data changes
-useEffect(() => {
-  // IMPORTANT: Don't auto-save when showing the welcome back banner
-  // or when no data has been entered yet
-  if (showWelcomeBack) {
-    return; // Don't save while welcome banner is shown
-  }
-  
-  // Only save if user has actually started filling the form
-  const hasData = goals.length > 0 || experienceLevel || artForms.length > 0 || 
-                  firstName || lastName || email || phone;
-  
-  if (hasData) {
-    autoSave.save({
-      goals,
-      experienceLevel,
-      artForms,
-      firstName,
-      lastName,
-      email,
-      phone,
-      newsletter,
-      currentStep,
-    });
-  }
-}, [goals, experienceLevel, artForms, firstName, lastName, email, phone, newsletter, currentStep, showWelcomeBack]);
+  // Auto-save whenever form data changes
+  useEffect(() => {
+    // IMPORTANT: Don't auto-save when showing the welcome back banner
+    // or when no data has been entered yet
+    if (showWelcomeBack) {
+      return; // Don't save while welcome banner is shown
+    }
+    
+    // Only save if user has actually started filling the form
+    const hasData = goals.length > 0 || experienceLevel || artForms.length > 0 || 
+                    firstName || lastName || email || phone;
+    
+    if (hasData) {
+      autoSave.save({
+        goals,
+        experienceLevel,
+        artForms,
+        firstName,
+        lastName,
+        email,
+        phone,
+        newsletter,
+        currentStep,
+      });
+    }
+  }, [goals, experienceLevel, artForms, firstName, lastName, email, phone, newsletter, currentStep, showWelcomeBack]);
 
   // Handle OAuth callback
   useEffect(() => {
@@ -114,6 +114,7 @@ useEffect(() => {
           setGoals([]);
           setExperienceLevel('');
           setArtForms([]);
+          
         } catch (err) {
           console.error('Profile creation error:', err);
           toast({ variant: "destructive", title: "Account created but profile failed" });
@@ -201,73 +202,73 @@ useEffect(() => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  if (!email || !firstName || !lastName) {
-    toast({ variant: "destructive", title: "Please fill in all required fields" });
-    return;
-  }
-  
-  setSubmitting(true);
-  
-  try {
-    const { data, error } = await supabase.from("profiles").insert({
-      first_name: firstName,
-      last_name: lastName,
-      email,
-      phone: phone || null,
-      goals,
-      interests: artForms,
-    }).select();
+    e.preventDefault();
     
-    if (error) {
-      // Handle duplicate email specifically
-      if (error.code === '23505') {
-        toast({ 
-          variant: "destructive", 
-          title: "Email already registered", 
-          description: "This email is already in use. Please use a different email or sign in." 
-        });
-        return;
-      }
-      throw error;
+    if (!email || !firstName || !lastName) {
+      toast({ variant: "destructive", title: "Please fill in all required fields" });
+      return;
     }
     
-    // Send welcome email
+    setSubmitting(true);
+    
     try {
-      await supabase.functions.invoke('send-welcome-email', {
-        body: { to: email, firstName, goals, interests: artForms }
+      const { data, error } = await supabase.from("profiles").insert({
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone: phone || null,
+        goals,
+        interests: artForms,
+      }).select();
+      
+      if (error) {
+        // Handle duplicate email specifically
+        if (error.code === '23505') {
+          toast({ 
+            variant: "destructive", 
+            title: "Email already registered", 
+            description: "This email is already in use. Please use a different email or sign in." 
+          });
+          return;
+        }
+        throw error;
+      }
+      
+      // Send welcome email
+      try {
+        await supabase.functions.invoke('send-welcome-email', {
+          body: { to: email, firstName, goals, interests: artForms }
+        });
+      } catch (emailErr) {
+        console.error('Email failed (non-critical):', emailErr);
+      }
+      
+      toast({ title: "🎉 Welcome!", description: "Your account is ready! Check your email." });
+      
+      autoSave.clear();
+      
+      // Reset form
+      setCurrentStep(0);
+      setGoals([]);
+      setExperienceLevel("");
+      setArtForms([]);
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      setPhone("");
+      setNewsletter(true);
+      
+    } catch (err: any) {
+      console.error('Form submit error:', err);
+      toast({ 
+        variant: "destructive", 
+        title: "Something went wrong", 
+        description: err.message || "Please try again." 
       });
-    } catch (emailErr) {
-      console.error('Email failed (non-critical):', emailErr);
+    } finally {
+      setSubmitting(false);
     }
-    
-    toast({ title: "🎉 Welcome!", description: "Your account is ready! Check your email." });
-    
-    autoSave.clear();
-    
-    // Reset form
-    setCurrentStep(0);
-    setGoals([]);
-    setExperienceLevel("");
-    setArtForms([]);
-    setFirstName("");
-    setLastName("");
-    setEmail("");
-    setPhone("");
-    setNewsletter(true);
-    
-  } catch (err: any) {
-    console.error('Form submit error:', err);
-    toast({ 
-      variant: "destructive", 
-      title: "Something went wrong", 
-      description: err.message || "Please try again." 
-    });
-  } finally {
-    setSubmitting(false);
-  }
-};
+  };
 
   return (
     <div className="space-y-6 p-4 max-w-lg mx-auto">
