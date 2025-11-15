@@ -66,74 +66,94 @@ export default function MultiStepSignupForm() {
   }, [goals, experienceLevel, artForms, firstName, lastName, email, phone, newsletter, currentStep, showWelcomeBack]);
 
   // Handle OAuth callback
-  useEffect(() => {
-    const handleOAuthCallback = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+useEffect(() => {
+  const handleOAuthCallback = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+      console.log('✅ User authenticated:', session.user.email);
+      const user = session.user;
       
-      if (session) {
-        console.log('✅ User authenticated:', session.user.email);
-        const user = session.user;
-        
-        const storedGoals = JSON.parse(sessionStorage.getItem('signup_goals') || '[]');
-        const storedArtForms = JSON.parse(sessionStorage.getItem('signup_art_forms') || '[]');
+      // Get stored data from sessionStorage
+      const storedGoals = JSON.parse(sessionStorage.getItem('signup_goals') || '[]');
+      const storedArtForms = JSON.parse(sessionStorage.getItem('signup_art_forms') || '[]');
 
+      console.log('📊 Retrieved goals:', storedGoals);
+      console.log('📊 Retrieved art forms:', storedArtForms);
+
+      try {
+        const nameParts = user.user_metadata?.full_name?.split(' ') || [];
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        const { error } = await supabase.from('profiles').insert({
+          id: user.id,
+          email: user.email,
+          first_name: firstName,
+          last_name: lastName,
+          goals: storedGoals,
+          interests: storedArtForms,
+        });
+
+        if (error && error.code !== '23505') {
+          throw error;
+        }
+
+        // Send welcome email with correct data
         try {
-          const nameParts = user.user_metadata?.full_name?.split(' ') || [];
-          const firstName = nameParts[0] || '';
-          const lastName = nameParts.slice(1).join(' ') || '';
-
-          const { error } = await supabase.from('profiles').insert({
-            id: user.id,
-            email: user.email,
-            first_name: firstName,
-            last_name: lastName,
+          console.log('📧 Sending welcome email with:', {
+            to: user.email,
+            firstName,
             goals: storedGoals,
-            interests: storedArtForms,
+            interests: storedArtForms
           });
 
-          if (error && error.code !== '23505') {
-            throw error;
-          }
-
-          try {
-            await supabase.functions.invoke('send-welcome-email', {
-              body: { to: user.email, firstName, goals: storedGoals, interests: storedArtForms }
-            });
-          } catch (emailErr) {
-            console.error('Email failed:', emailErr);
-          }
-
-          sessionStorage.removeItem('signup_goals');
-          sessionStorage.removeItem('signup_experience');
-          sessionStorage.removeItem('signup_art_forms');
-          autoSave.clear();
-
-          toast({ 
-  title: "🎉 Welcome!", 
-  description: "Your account is ready! Check your email.",
-  duration: 3000  // ADD THIS - dismisses after 3 seconds
-});
-          // Sign out user so they don't stay logged in
-await supabase.auth.signOut();
-
-setCurrentStep(0);
-setGoals([]);
-setExperienceLevel('');
-setArtForms([]);
-          setCurrentStep(0);
-          setGoals([]);
-          setExperienceLevel('');
-          setArtForms([]);
-          
-        } catch (err) {
-          console.error('Profile creation error:', err);
-          toast({ variant: "destructive", title: "Account created but profile failed" });
+          await supabase.functions.invoke('send-welcome-email', {
+            body: { 
+              to: user.email, 
+              firstName, 
+              goals: storedGoals,  // Make sure these are arrays
+              interests: storedArtForms 
+            }
+          });
+          console.log('✅ Welcome email sent');
+        } catch (emailErr) {
+          console.error('❌ Email failed:', emailErr);
         }
-      }
-    };
 
-    handleOAuthCallback();
-  }, []);
+        // Clear session storage
+        sessionStorage.removeItem('signup_goals');
+        sessionStorage.removeItem('signup_experience');
+        sessionStorage.removeItem('signup_art_forms');
+        autoSave.clear();
+
+        toast({ 
+          title: "🎉 Welcome!", 
+          description: "Your account is ready! Check your email.",
+          duration: 3000
+        });
+        
+        // Sign out so user doesn't stay logged in
+        await supabase.auth.signOut();
+        
+        setCurrentStep(0);
+        setGoals([]);
+        setExperienceLevel('');
+        setArtForms([]);
+        
+      } catch (err) {
+        console.error('❌ Profile creation error:', err);
+        toast({ 
+          variant: "destructive", 
+          title: "Account created but setup incomplete",
+          duration: 3000
+        });
+      }
+    }
+  };
+
+  handleOAuthCallback();
+}, []);
 
   const handleCheckboxChange = (value: string, values: string[], setter: (val: string[]) => void) => {
     setter(values.includes(value) ? values.filter((v) => v !== value) : [...values, value]);
@@ -212,77 +232,99 @@ setArtForms([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
+  
+  console.log('📧 FORM SUBMIT: Starting with data:', {
+    firstName,
+    lastName,
+    email,
+    goals,
+    artForms
+  });
+  
+  if (!email || !firstName || !lastName) {
+    toast({ variant: "destructive", title: "Please fill in all required fields" });
+    return;
+  }
+  
+  setSubmitting(true);
+  
+  try {
+    const { data, error } = await supabase.from("profiles").insert({
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      phone: phone || null,
+      goals,
+      interests: artForms,
+    }).select();
     
-    if (!email || !firstName || !lastName) {
-      toast({ variant: "destructive", title: "Please fill in all required fields" });
-      return;
-    }
-    
-    setSubmitting(true);
-    
-    try {
-      const { data, error } = await supabase.from("profiles").insert({
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        phone: phone || null,
-        goals,
-        interests: artForms,
-      }).select();
-      
-      if (error) {
-        // Handle duplicate email specifically
-        if (error.code === '23505') {
-          toast({ 
-            variant: "destructive", 
-            title: "Email already registered", 
-            description: "This email is already in use. Please use a different email or sign in." 
-          });
-          return;
-        }
-        throw error;
-      }
-      
-      // Send welcome email
-      try {
-        await supabase.functions.invoke('send-welcome-email', {
-          body: { to: email, firstName, goals, interests: artForms }
+    if (error) {
+      if (error.code === '23505') {
+        toast({ 
+          variant: "destructive", 
+          title: "Email already registered", 
+          description: "This email is already in use. Please use a different email.",
+          duration: 3000
         });
-      } catch (emailErr) {
-        console.error('Email failed (non-critical):', emailErr);
+        return;
       }
-      
-      toast({ 
-  title: "🎉 Welcome!", 
-  description: "Your account is ready! Check your email.",
-  duration: 3000  // ADD THIS
-});
-      
-      autoSave.clear();
-      
-      // Reset form
-      setCurrentStep(0);
-      setGoals([]);
-      setExperienceLevel("");
-      setArtForms([]);
-      setFirstName("");
-      setLastName("");
-      setEmail("");
-      setPhone("");
-      setNewsletter(true);
-      
-    } catch (err: any) {
-      console.error('Form submit error:', err);
-      toast({ 
-        variant: "destructive", 
-        title: "Something went wrong", 
-        description: err.message || "Please try again." 
-      });
-    } finally {
-      setSubmitting(false);
+      throw error;
     }
-  };
+    
+    // Send welcome email
+    try {
+      console.log('📧 Sending welcome email with:', {
+        to: email,
+        firstName,
+        goals,
+        interests: artForms
+      });
+
+      await supabase.functions.invoke('send-welcome-email', {
+        body: { 
+          to: email, 
+          firstName, 
+          goals,  // Array of goals
+          interests: artForms  // Array of art forms
+        }
+      });
+      console.log('✅ Welcome email sent');
+    } catch (emailErr) {
+      console.error('⚠️ Email failed (non-critical):', emailErr);
+    }
+    
+    toast({ 
+      title: "🎉 Welcome!", 
+      description: "Your account is ready! Check your email.",
+      duration: 3000
+    });
+    
+    autoSave.clear();
+    
+    // Reset form
+    setCurrentStep(0);
+    setGoals([]);
+    setExperienceLevel("");
+    setArtForms([]);
+    setFirstName("");
+    setLastName("");
+    setEmail("");
+    setPhone("");
+    setNewsletter(true);
+    
+  } catch (err: any) {
+    console.error('❌ Form submit error:', err);
+    toast({ 
+      variant: "destructive", 
+      title: "Something went wrong", 
+      description: err.message || "Please try again.",
+      duration: 3000
+    });
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   return (
     <div className="space-y-6 p-4 max-w-lg mx-auto">
