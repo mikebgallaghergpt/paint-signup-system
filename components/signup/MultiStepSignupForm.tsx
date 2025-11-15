@@ -191,51 +191,73 @@ export default function MultiStepSignupForm() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !firstName || !lastName) {
-      toast({ variant: "destructive", title: "Please fill in all required fields" });
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase.from("profiles").insert({
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        phone: phone || null,
-        goals,
-        interests: artForms,
-      }).select();
-      if (error) throw error;
-      
-      try {
-        await supabase.functions.invoke('send-welcome-email', {
-          body: { to: email, firstName, goals, interests: artForms }
+  e.preventDefault();
+  
+  if (!email || !firstName || !lastName) {
+    toast({ variant: "destructive", title: "Please fill in all required fields" });
+    return;
+  }
+  
+  setSubmitting(true);
+  
+  try {
+    const { data, error } = await supabase.from("profiles").insert({
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      phone: phone || null,
+      goals,
+      interests: artForms,
+    }).select();
+    
+    if (error) {
+      // Handle duplicate email specifically
+      if (error.code === '23505') {
+        toast({ 
+          variant: "destructive", 
+          title: "Email already registered", 
+          description: "This email is already in use. Please use a different email or sign in." 
         });
-      } catch (emailErr) {
-        console.error('Email failed:', emailErr);
+        return;
       }
-      
-      toast({ title: "🎉 Welcome!", description: "Your account is ready! Check your email." });
-      
-      autoSave.clear();
-      
-      setCurrentStep(0);
-      setGoals([]);
-      setExperienceLevel("");
-      setArtForms([]);
-      setFirstName("");
-      setLastName("");
-      setEmail("");
-      setPhone("");
-      setNewsletter(true);
-    } catch (err) {
-      console.error(err);
-      toast({ variant: "destructive", title: "Something went wrong. Please try again." });
-    } finally {
-      setSubmitting(false);
+      throw error;
     }
-  };
+    
+    // Send welcome email
+    try {
+      await supabase.functions.invoke('send-welcome-email', {
+        body: { to: email, firstName, goals, interests: artForms }
+      });
+    } catch (emailErr) {
+      console.error('Email failed (non-critical):', emailErr);
+    }
+    
+    toast({ title: "🎉 Welcome!", description: "Your account is ready! Check your email." });
+    
+    autoSave.clear();
+    
+    // Reset form
+    setCurrentStep(0);
+    setGoals([]);
+    setExperienceLevel("");
+    setArtForms([]);
+    setFirstName("");
+    setLastName("");
+    setEmail("");
+    setPhone("");
+    setNewsletter(true);
+    
+  } catch (err: any) {
+    console.error('Form submit error:', err);
+    toast({ 
+      variant: "destructive", 
+      title: "Something went wrong", 
+      description: err.message || "Please try again." 
+    });
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   return (
     <div className="space-y-6 p-4 max-w-lg mx-auto">
