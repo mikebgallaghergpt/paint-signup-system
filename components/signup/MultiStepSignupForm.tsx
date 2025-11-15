@@ -38,22 +38,32 @@ export default function MultiStepSignupForm() {
     }
   }, []);
 
-  // Auto-save whenever form data changes
-  useEffect(() => {
-    if (!showWelcomeBack) {
-      autoSave.save({
-        goals,
-        experienceLevel,
-        artForms,
-        firstName,
-        lastName,
-        email,
-        phone,
-        newsletter,
-        currentStep,
-      });
-    }
-  }, [goals, experienceLevel, artForms, firstName, lastName, email, phone, newsletter, currentStep, showWelcomeBack]);
+ // Auto-save whenever form data changes
+useEffect(() => {
+  // IMPORTANT: Don't auto-save when showing the welcome back banner
+  // or when no data has been entered yet
+  if (showWelcomeBack) {
+    return; // Don't save while welcome banner is shown
+  }
+  
+  // Only save if user has actually started filling the form
+  const hasData = goals.length > 0 || experienceLevel || artForms.length > 0 || 
+                  firstName || lastName || email || phone;
+  
+  if (hasData) {
+    autoSave.save({
+      goals,
+      experienceLevel,
+      artForms,
+      firstName,
+      lastName,
+      email,
+      phone,
+      newsletter,
+      currentStep,
+    });
+  }
+}, [goals, experienceLevel, artForms, firstName, lastName, email, phone, newsletter, currentStep, showWelcomeBack]);
 
   // Handle OAuth callback
   useEffect(() => {
