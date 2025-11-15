@@ -108,8 +108,18 @@ export default function MultiStepSignupForm() {
           sessionStorage.removeItem('signup_art_forms');
           autoSave.clear();
 
-          toast({ title: "🎉 Welcome!", description: "Your account is ready! Check your email." });
-          
+          toast({ 
+  title: "🎉 Welcome!", 
+  description: "Your account is ready! Check your email.",
+  duration: 3000  // ADD THIS - dismisses after 3 seconds
+});
+          // Sign out user so they don't stay logged in
+await supabase.auth.signOut();
+
+setCurrentStep(0);
+setGoals([]);
+setExperienceLevel('');
+setArtForms([]);
           setCurrentStep(0);
           setGoals([]);
           setExperienceLevel('');
@@ -243,7 +253,11 @@ export default function MultiStepSignupForm() {
         console.error('Email failed (non-critical):', emailErr);
       }
       
-      toast({ title: "🎉 Welcome!", description: "Your account is ready! Check your email." });
+      toast({ 
+  title: "🎉 Welcome!", 
+  description: "Your account is ready! Check your email.",
+  duration: 3000  // ADD THIS
+});
       
       autoSave.clear();
       

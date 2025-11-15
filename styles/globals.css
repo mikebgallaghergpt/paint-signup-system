@@ -22,19 +22,16 @@ body {
 
 /* Constrain main container to reasonable max-width */
 .min-h-screen {
-  max-width: 1440px;
+  max-width: 1200px;  /* Changed from 1440px */
   margin: 0 auto;
 }
 
-/* Make carousel images scale properly */
-img {
-  max-width: 100%;
-  height: auto;
-}
-
-/* Ensure form doesn't get too wide */
-form {
-  max-width: 100%;
+/* Make carousel and form scale better */
+@media (min-width: 1024px) {
+  .min-h-screen {
+    transform: scale(0.9);
+    transform-origin: top center;
+  }
 }
 /* === END RESPONSIVE FIXES === */
 
