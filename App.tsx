@@ -46,30 +46,34 @@ export default function App() {
     setCurrentView('signup');
   };
 
-  // If logged in, show admin dashboard (DISABLED FOR NOW)
-  if (session) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="flex items-center justify-between p-4 bg-white border-b">
-          <h1 className="text-xl font-bold">Welcome!</h1>
-          <Button
-            variant="outline"
-            onClick={handleLogout}
-            className="flex items-center justify-center gap-2 mx-auto border-red-500 text-red-600 hover:bg-red-50"
-          >
-            <LogOut className="w-4 h-4" />
-            Log Out
-          </Button>
-        </div>
-        
-        <div className="p-8 text-center">
-          <p className="text-gray-600">Admin dashboard coming soon...</p>
-        </div>
-        
-        <Toaster />
+  // DISABLED: Admin dashboard redirect
+// Commenting out so OAuth users see signup form, not admin
+/*
+// If logged in, show admin dashboard (DISABLED FOR NOW)
+if (session) {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex items-center justify-between p-4 bg-white border-b">
+        <h1 className="text-xl font-bold">Welcome!</h1>
+        <Button
+          variant="outline"
+          onClick={handleLogout}
+          className="flex items-center justify-center gap-2 mx-auto border-red-500 text-red-600 hover:bg-red-50"
+        >
+          <LogOut className="w-4 h-4" />
+          Log Out
+        </Button>
       </div>
-    );
-  }
+      
+      <div className="p-8 text-center">
+        <p className="text-gray-600">Admin dashboard coming soon...</p>
+      </div>
+      
+      <Toaster />
+    </div>
+  );
+}
+*/
 
   // MultiStepSignupForm Form rendering (if not logged in)
   return (
