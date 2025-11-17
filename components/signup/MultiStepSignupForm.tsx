@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '../../supabaseClient';
 import { ArrowLeft, ArrowRight, Mail, User } from 'lucide-react';
@@ -520,19 +519,27 @@ export default function MultiStepSignupForm() {
             <Label className="text-sm font-medium text-gray-900 mb-3 block">
               What's your experience level?
             </Label>
-            <RadioGroup value={experienceLevel} onValueChange={setExperienceLevel}>
-              {experienceOptions.map((option) => (
-                <div key={option.value} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                  <RadioGroupItem value={option.value} id={option.value} />
-                  <div className="flex-1">
-                    <label htmlFor={option.value} className="font-medium cursor-pointer">
-                      {option.label}
-                    </label>
-                    <p className="text-sm text-gray-500">{option.description}</p>
-                  </div>
-                </div>
-              ))}
-            </RadioGroup>
+<div className="space-y-3">
+  {experienceOptions.map((option) => (
+    <div key={option.value} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+      <input
+        type="radio"
+        id={option.value}
+        name="experienceLevel"
+        value={option.value}
+        checked={experienceLevel === option.value}
+        onChange={(e) => setExperienceLevel(e.target.value)}
+        className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+      />
+      <div className="flex-1">
+        <label htmlFor={option.value} className="font-medium cursor-pointer">
+          {option.label}
+        </label>
+        <p className="text-sm text-gray-500">{option.description}</p>
+      </div>
+    </div>
+  ))}
+</div>
           </div>
 
           {/* Art Forms */}
