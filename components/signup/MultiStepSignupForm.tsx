@@ -5,21 +5,16 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '../../supabaseClient';
-import { ArrowLeft, ArrowRight, Mail, User } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Mail, User, CheckCircle, Phone, Star } from 'lucide-react';
 
 // Auto-save utility
 const autoSave = {
   save: (data: any) => {
     try {
-// Save user data for success page
-localStorage.setItem('gallagher_signup_success', JSON.stringify({
-  goals,
-  interests: artForms,
-  firstName
-}));
-
-autoSave.clear();
-
+      localStorage.setItem('gallagher_signup_progress', JSON.stringify({
+        ...data,
+        timestamp: Date.now()
+      }));
       console.log('🔵 AUTO-SAVE: Saving data', data);
     } catch (err) {
       console.error('❌ AUTO-SAVE: Failed to save', err);
@@ -45,11 +40,9 @@ autoSave.clear();
   clear: () => {
     try {
       localStorage.removeItem('gallagher_signup_progress');
-      localStorage.setItem('gallagher_signup_success', JSON.stringify({
-  goals: storedGoals,
-  interests: storedArtForms,
-  firstName: firstName
-}));
+      sessionStorage.removeItem('signup_goals');
+      sessionStorage.removeItem('signup_experience');
+      sessionStorage.removeItem('signup_art_forms');
       console.log('🗑️ AUTO-SAVE: Clearing');
     } catch (err) {
       console.error('❌ AUTO-SAVE: Failed to clear', err);
@@ -57,6 +50,166 @@ autoSave.clear();
   }
 };
 
+// Success View Component
+interface SuccessViewProps {
+  userName?: string;
+  userGoals?: string[];
+  onStartOver: () => void;
+}
+
+function SuccessView({ userName, userGoals, onStartOver }: SuccessViewProps) {
+  const isPortfolioFocused = userGoals?.includes('portfolio');
+  const isContestFocused = userGoals?.includes('contest');
+
+  return (
+    <div className="w-full max-w-2xl mx-auto bg-white p-6 space-y-6">
+      
+      {/* Success Header */}
+      <div className="text-center">
+        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle className="w-12 h-12 text-green-600" />
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          🎨 Welcome{userName ? ` ${userName}` : ''} to Gallagher Art School!
+        </h2>
+        <p className="text-lg text-gray-600">
+          Your account is ready! Check your email for personalized recommendations.
+        </p>
+      </div>
+
+      {/* Credentials */}
+      <div className="bg-blue-50 rounded-xl p-6 text-center">
+        <h3 className="text-xl font-bold text-gray-900 mb-4">
+          📚 Yale MFA Graduate • 30+ Years Experience
+        </h3>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <div className="text-2xl font-bold text-blue-600">500+</div>
+            <div className="text-sm text-gray-600">Students Taught</div>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-blue-600">95%</div>
+            <div className="text-sm text-gray-600">College Acceptance</div>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-blue-600">30+</div>
+            <div className="text-sm text-gray-600">Years Teaching</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Personalized Recommendations */}
+      <div className="space-y-4">
+        <h3 className="text-xl font-bold text-gray-900">🎯 Recommended for Your Goals</h3>
+        
+        {isPortfolioFocused && (
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 relative">
+            <div className="absolute -top-2 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm">
+              Perfect Match!
+            </div>
+            <h4 className="font-bold text-blue-900 mb-2 mt-2">🎓 Portfolio Preparation Program</h4>
+            <p className="text-blue-800 text-sm mb-3">
+              12-month comprehensive program for college-bound students. RISD, Parsons, Art Center preparation.
+            </p>
+            <div className="text-xs text-blue-700 space-y-1">
+              <div>💰 <strong>$4,800</strong> (30 sessions over 12 months)</div>
+              <div>🏆 <strong>95% acceptance rate</strong> to top art programs</div>
+            </div>
+          </div>
+        )}
+
+        {isContestFocused && (
+          <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
+            <h4 className="font-bold text-purple-900 mb-2">🏆 Competition Preparation</h4>
+            <p className="text-purple-800 text-sm mb-3">
+              Specialized coaching for art competitions and exhibitions.
+            </p>
+            <div className="text-xs text-purple-700 space-y-1">
+              <div>💰 <strong>$2,400</strong> (16 sessions over 6 months)</div>
+              <div>🏆 <strong>Award-winning</strong> student track record</div>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <h4 className="font-bold text-green-900 mb-2">✨ Skills Development Program</h4>
+          <p className="text-green-800 text-sm mb-3">
+            Classical oil painting & drawing techniques. Perfect for serious hobbyists.
+          </p>
+          <div className="text-xs text-green-700 space-y-1">
+            <div>💰 <strong>$2,400</strong> (16 sessions over 6 months)</div>
+            <div>🎨 <strong>Focus:</strong> Classical techniques & composition</div>
+          </div>
+        </div>
+
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+          <h4 className="font-bold text-orange-900 mb-2">🌟 Foundation Building (Ages 6-12)</h4>
+          <p className="text-orange-800 text-sm mb-3">
+            Age-appropriate art education. Many students continue for 5+ years.
+          </p>
+          <div className="text-xs text-orange-700 space-y-1">
+            <div>💰 <strong>$380/month</strong> (4 sessions monthly)</div>
+            <div>🎨 <strong>Focus:</strong> Creativity, fundamentals, confidence</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Next Steps */}
+      <div className="bg-gray-50 rounded-lg p-4">
+        <h3 className="font-bold text-gray-900 mb-3">🚀 What's Next?</h3>
+        <div className="grid md:grid-cols-3 gap-4 text-center text-sm">
+          <div>
+            <Mail className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+            <div className="font-medium">Check Email</div>
+            <div className="text-gray-600">Detailed recommendations</div>
+          </div>
+          <div>
+            <Phone className="w-8 h-8 text-green-600 mx-auto mb-2" />
+            <div className="font-medium">Free Consultation</div>
+            <div className="text-gray-600">30-minute discussion</div>
+          </div>
+          <div>
+            <Star className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+            <div className="font-medium">Begin Journey</div>
+            <div className="text-gray-600">Start creating</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Call to Action */}
+      <div className="space-y-3">
+        <Button 
+          size="lg" 
+          className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6"
+          onClick={() => window.open('tel:+13102345678')}
+        >
+          <Phone className="mr-2 h-5 w-5" />
+          Call Now: (310) 234-5678
+        </Button>
+        
+        <div className="flex gap-3">
+          <Button 
+            variant="outline"
+            className="flex-1"
+            onClick={() => window.open('https://gallagherartschool.com', '_blank')}
+          >
+            Visit Website →
+          </Button>
+          <Button 
+            variant="outline"
+            className="flex-1"
+            onClick={onStartOver}
+          >
+            Help Someone Else →
+          </Button>
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+// Main Component
 export default function MultiStepSignupForm() {
   const { toast } = useToast();
   
@@ -72,6 +225,8 @@ export default function MultiStepSignupForm() {
   const [newsletter, setNewsletter] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showWelcomeBack, setShowWelcomeBack] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successData, setSuccessData] = useState<{userName?: string, userGoals?: string[]}>({});
 
   // Goal options
   const goalOptions = [
@@ -141,7 +296,7 @@ export default function MultiStepSignupForm() {
               interests: storedArtForms
             });
 
-          await supabase.functions.invoke('send-welcome-email', {
+            await supabase.functions.invoke('send-welcome-email', {
               body: { 
                 to: user.email, 
                 firstName, 
@@ -155,28 +310,13 @@ export default function MultiStepSignupForm() {
             console.error('❌ OAuth email failed:', emailErr);
           }
 
-          // Clear storage
-
-          
-          // Sign out so user doesn't stay logged in
+          // Clear storage and show success
+          autoSave.clear();
+          setShowWelcomeBack(false);
           await supabase.auth.signOut();
           
-// Reset form
-setCurrentStep(0);
-setGoals([]);
-setExperienceLevel("");
-setArtForms([]);
-setFirstName("");
-setLastName("");
-setEmail("");
-setPhone("");
-setNewsletter(true);
-setShowWelcomeBack(false);
-
-// Redirect after brief delay
-setTimeout(() => {
-  window.location.href = '/success';
-}, 2000);
+          setSuccessData({ userName: firstName, userGoals: storedGoals });
+          setShowSuccess(true);
           
         } catch (err) {
           console.error('❌ OAuth profile creation error:', err);
@@ -292,11 +432,11 @@ setTimeout(() => {
       sessionStorage.setItem('signup_art_forms', JSON.stringify(artForms));
       
       const { error } = await supabase.auth.signInWithOAuth({
-       provider: 'google',
+        provider: 'google',
         options: {
-    redirectTo: 'https://signup.gallagherartschool.com'
-  }
-});
+          redirectTo: 'https://signup.gallagherartschool.com'
+        }
+      });
 
       if (error) throw error;
     } catch (error: any) {
@@ -374,23 +514,31 @@ setTimeout(() => {
         console.error('⚠️ Email failed (non-critical):', emailErr);
       }
       
-toast({ 
-  title: "🎉 Success!", 
-  description: "Redirecting to your personalized recommendations...",
-  duration: 2000
-});
-      autoSave.clear();
-      setShowWelcomeBack(false);
+      toast({ 
+        title: "🎉 Success!", 
+        description: "Redirecting to your personalized recommendations...",
+        duration: 2000
+      });
       
-      // Reset form
-   setCurrentStep(0);
-setGoals([]);
-setExperienceLevel('');
-setArtForms([]);
-setFirstName('');
-setLastName('');
-setEmail('');
-setPhone('');;
+      autoSave.clear();
+      
+      // Reset form state
+      setCurrentStep(0);
+      setGoals([]);
+      setExperienceLevel("");
+      setArtForms([]);
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      setPhone("");
+      setNewsletter(true);
+      setShowWelcomeBack(false);
+
+      // Show success view after brief delay
+      setTimeout(() => {
+        setSuccessData({ userName: firstName, userGoals: goals });
+        setShowSuccess(true);
+      }, 2000);
       
     } catch (err: any) {
       console.error('❌ Form submit error:', err);
@@ -421,6 +569,30 @@ setPhone('');;
     setPhone('');
     setShowWelcomeBack(false);
   };
+
+  // Show success view
+  if (showSuccess) {
+    return (
+      <SuccessView 
+        userName={successData.userName}
+        userGoals={successData.userGoals}
+        onStartOver={() => {
+          setShowSuccess(false);
+          setSuccessData({});
+          autoSave.clear();
+          setCurrentStep(0);
+          setGoals([]);
+          setExperienceLevel('');
+          setArtForms([]);
+          setFirstName('');
+          setLastName('');
+          setEmail('');
+          setPhone('');
+          setShowWelcomeBack(false);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="w-full max-w-md mx-auto bg-white p-6 space-y-6">
@@ -529,27 +701,27 @@ setPhone('');;
             <Label className="text-sm font-medium text-gray-900 mb-3 block">
               What's your experience level?
             </Label>
- <div className="space-y-3">
-  {experienceOptions.map((option) => (
-    <div key={option.value} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-      <input
-        type="radio"
-        id={option.value}
-        name="experienceLevel"
-        value={option.value}
-        checked={experienceLevel === option.value}
-        onChange={(e) => setExperienceLevel(e.target.value)}
-        className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-      />
-      <div className="flex-1">
-        <label htmlFor={option.value} className="font-medium cursor-pointer">
-          {option.label}
-        </label>
-        <p className="text-sm text-gray-500">{option.description}</p>
-      </div>
-    </div>
-  ))}
-</div>
+            <div className="space-y-3">
+              {experienceOptions.map((option) => (
+                <div key={option.value} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    id={option.value}
+                    name="experienceLevel"
+                    value={option.value}
+                    checked={experienceLevel === option.value}
+                    onChange={(e) => setExperienceLevel(e.target.value)}
+                    className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  />
+                  <div className="flex-1">
+                    <label htmlFor={option.value} className="font-medium cursor-pointer">
+                      {option.label}
+                    </label>
+                    <p className="text-sm text-gray-500">{option.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Art Forms */}
@@ -697,7 +869,7 @@ setPhone('');;
               <Button
                 onClick={() => {
                   autoSave.clear();
-                  window.location.href = '/success';
+                  window.location.reload();
                 }}
                 variant="ghost"
                 className="flex-1 text-gray-500"
