@@ -11,10 +11,15 @@ import { ArrowLeft, ArrowRight, Mail, User } from 'lucide-react';
 const autoSave = {
   save: (data: any) => {
     try {
-      localStorage.setItem('gallagher_signup_progress', JSON.stringify({
-        ...data,
-        timestamp: Date.now()
-      }));
+// Save user data for success page
+localStorage.setItem('gallagher_signup_success', JSON.stringify({
+  goals,
+  interests: artForms,
+  firstName
+}));
+
+autoSave.clear();
+
       console.log('🔵 AUTO-SAVE: Saving data', data);
     } catch (err) {
       console.error('❌ AUTO-SAVE: Failed to save', err);
@@ -40,9 +45,11 @@ const autoSave = {
   clear: () => {
     try {
       localStorage.removeItem('gallagher_signup_progress');
-      sessionStorage.removeItem('signup_goals');
-      sessionStorage.removeItem('signup_experience');
-      sessionStorage.removeItem('signup_art_forms');
+      localStorage.setItem('gallagher_signup_success', JSON.stringify({
+  goals: storedGoals,
+  interests: storedArtForms,
+  firstName: firstName
+}));
       console.log('🗑️ AUTO-SAVE: Clearing');
     } catch (err) {
       console.error('❌ AUTO-SAVE: Failed to clear', err);
@@ -134,7 +141,7 @@ export default function MultiStepSignupForm() {
               interests: storedArtForms
             });
 
-          await supabase.functions.invoke('send-welcome-email-fixed', {
+          await supabase.functions.invoke('send-welcome-email', {
               body: { 
                 to: user.email, 
                 firstName, 
@@ -149,22 +156,27 @@ export default function MultiStepSignupForm() {
           }
 
           // Clear storage
-          autoSave.clear();
 
-          toast({ 
-            title: "🎉 Welcome!", 
-            description: "Your account is ready! Check your email.",
-            duration: 3000
-          });
           
           // Sign out so user doesn't stay logged in
           await supabase.auth.signOut();
           
-          // Reset form
-          setCurrentStep(0);
-          setGoals([]);
-          setExperienceLevel('');
-          setArtForms([]);
+// Reset form
+setCurrentStep(0);
+setGoals([]);
+setExperienceLevel("");
+setArtForms([]);
+setFirstName("");
+setLastName("");
+setEmail("");
+setPhone("");
+setNewsletter(true);
+setShowWelcomeBack(false);
+
+// Redirect after brief delay
+setTimeout(() => {
+  window.location.href = '/success';
+}, 2000);
           
         } catch (err) {
           console.error('❌ OAuth profile creation error:', err);
@@ -362,25 +374,23 @@ export default function MultiStepSignupForm() {
         console.error('⚠️ Email failed (non-critical):', emailErr);
       }
       
-      toast({ 
-        title: "🎉 Welcome!", 
-        description: "Your account is ready! Check your email.",
-        duration: 3000
-      });
-      
+toast({ 
+  title: "🎉 Success!", 
+  description: "Redirecting to your personalized recommendations...",
+  duration: 2000
+});
       autoSave.clear();
+      setShowWelcomeBack(false);
       
       // Reset form
-      setCurrentStep(0);
-      setGoals([]);
-      setExperienceLevel("");
-      setArtForms([]);
-      setFirstName("");
-      setLastName("");
-      setEmail("");
-      setPhone("");
-      setNewsletter(true);
-      setShowWelcomeBack(false);
+   setCurrentStep(0);
+setGoals([]);
+setExperienceLevel('');
+setArtForms([]);
+setFirstName('');
+setLastName('');
+setEmail('');
+setPhone('');;
       
     } catch (err: any) {
       console.error('❌ Form submit error:', err);
@@ -687,7 +697,7 @@ export default function MultiStepSignupForm() {
               <Button
                 onClick={() => {
                   autoSave.clear();
-                  window.location.reload();
+                  window.location.href = '/success';
                 }}
                 variant="ghost"
                 className="flex-1 text-gray-500"
