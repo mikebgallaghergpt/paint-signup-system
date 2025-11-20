@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '../../supabaseClient';
 import { ArrowLeft, ArrowRight, Mail, User } from 'lucide-react';
@@ -134,7 +133,7 @@ export default function MultiStepSignupForm() {
               goals: storedGoals,
               interests: storedArtForms
             });
-            
+
           await supabase.functions.invoke('send-welcome-email-fixed', {
               body: { 
                 to: user.email, 
