@@ -280,11 +280,11 @@ export default function MultiStepSignupForm() {
       sessionStorage.setItem('signup_art_forms', JSON.stringify(artForms));
       
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+       provider: 'google',
         options: {
-          redirectTo: window.location.origin
-        }
-      });
+    redirectTo: 'https://signup.gallagherartschool.com'
+  }
+});
 
       if (error) throw error;
     } catch (error: any) {
