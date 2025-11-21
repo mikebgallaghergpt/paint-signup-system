@@ -1,67 +1,107 @@
-// App.tsx
+import React, { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
-import React, { useState, useEffect, Suspense } from 'react';
-import { supabase } from './supabaseClient';
-import type { Session } from '@supabase/supabase-js';
-import { EnhancedImageCarousel } from './components/EnhancedImageCarousel';
-import { SimpleSignupForm } from './components/SimpleSignupForm';
+import HomePage from './components/HomePage';
 import MultiStepSignupForm from './components/signup/MultiStepSignupForm';
-import { ExitIntentPopup } from './components/ExitIntentPopup';
+import './App.css';
 
-export default function App() {
-  const [useSimpleForm, setUseSimpleForm] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [session, setSession] = useState<Session | null>(null);
+function App() {
+  const [currentView, setCurrentView] = useState<'home' | 'signup'>('signup');
 
+  // Check URL to determine initial view
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
+    const path = window.location.pathname;
+    if (path === '/' || path === '/home') {
+      setCurrentView('home');
+    } else {
+      setCurrentView('signup');
+    }
   }, []);
 
+  const navigateToSignup = () => {
+    setCurrentView('signup');
+    window.history.pushState({}, '', '/signup');
+  };
+
+  const navigateToHome = () => {
+    setCurrentView('home');
+    window.history.pushState({}, '', '/');
+  };
+
+  // Handle browser back/forward buttons
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path === '/' || path === '/home') {
+        setCurrentView('home');
+      } else {
+        setCurrentView('signup');
+      }
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // DISABLED: Don't redirect to admin dashboard for OAuth users
-  // OAuth users should see the signup form with success message
-  
-  // MultiStepSignupForm Form rendering
   return (
     <>
-      {useSimpleForm ? (
-        <SimpleSignupForm />
-      ) : (
-        <Suspense fallback={<div className="text-center py-8">Loading...</div>}>
-          <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} min-h-screen`}>
-            {/* Left side - Carousel */}
-            <div className={`${isMobile ? 'w-full h-[40vh]' : 'w-1/2'} bg-gray-100`}>
-              <EnhancedImageCarousel />
-            </div>
-
-            {/* Right side - Signup Form */}
-            <div className={`${isMobile ? 'w-full' : 'w-1/2'} flex items-center justify-center p-4 bg-white`}>
-              <div className="w-full max-w-md">
-                <MultiStepSignupForm />
+      {currentView === 'home' ? (
+        <div>
+          {/* Navigation Bar */}
+          <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
+            <div className="max-w-6xl mx-auto px-6 py-4">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-bold text-gray-900">🎨 Gallagher Art School</h1>
+                </div>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={navigateToSignup}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium"
+                  >
+                    Get Started →
+                  </button>
+                  <a 
+                    href="tel:+13102345678"
+                    className="text-gray-600 hover:text-gray-800 font-medium"
+                  >
+                    (310) 234-5678
+                  </a>
+                </div>
               </div>
             </div>
+          </nav>
+
+          {/* Homepage Component */}
+          <HomePage />
+        </div>
+      ) : (
+        <div>
+          {/* Signup Navigation */}
+          <nav className="bg-white shadow-sm border-b">
+            <div className="max-w-md mx-auto px-6 py-4">
+              <div className="flex justify-between items-center">
+                <button
+                  onClick={navigateToHome}
+                  className="text-gray-600 hover:text-gray-800 font-medium"
+                >
+                  ← Back to Home
+                </button>
+                <h1 className="text-lg font-bold text-gray-900">Sign Up</h1>
+                <div></div> {/* Spacer for centering */}
+              </div>
+            </div>
+          </nav>
+
+          {/* Signup Form */}
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white py-8">
+            <MultiStepSignupForm />
           </div>
-        </Suspense>
+        </div>
       )}
+
       <Toaster />
-      <ExitIntentPopup />
     </>
   );
 }
+
+export default App;
