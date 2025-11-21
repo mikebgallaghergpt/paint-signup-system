@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import HomePage from './components/HomePage';
 import MultiStepSignupForm from './components/signup/MultiStepSignupForm';
-import './App.css';
 
 function App() {
   const [currentView, setCurrentView] = useState<'home' | 'signup'>('signup');
